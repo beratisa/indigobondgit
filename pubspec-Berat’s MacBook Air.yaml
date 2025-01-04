@@ -1,0 +1,31 @@
+name: sec_pro_01
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  flutter_web_plugins:   # Add this line
+    sdk: flutter
+  
+  postgres: ^2.4.1  # Use a Dart PostgreSQL package instead of specifying PostgreSQL version
+  json_annotation: ^4.0.1
+  http: ^0.13.4
+  excel: ^4.0.6
+  path_provider: ^2.1.4
+  intl: ^0.19.0
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  build_runner: ^2.0.0  # If you are using json_serializable
+
+flutter:
+  uses-material-design: true
