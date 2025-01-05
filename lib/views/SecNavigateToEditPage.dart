@@ -86,6 +86,65 @@ class _SecNavigateToEditPageState extends State<SecNavigateToEditPage> {
           child: SingleChildScrollView(
             child: Column(
               children: [
+                DropdownButtonFormField<String>(
+                  decoration: const InputDecoration(labelText: 'Security Type'),
+                  value: _selectedSecurityType,
+                  items: ['BONDS', 'TBILLS', 'ETF', 'STOCK']
+                    .map((type) => DropdownMenuItem<String>(
+                      value: type,
+                      child: Text(type),
+                      ))
+                    .toList(),
+                  onChanged: (value) {
+                  setState(() {
+                    _selectedSecurityType = value;
+                  });
+                  },
+                  onSaved: (value) {
+                  _formData['security_type'] = value;
+                  },
+                ),
+                DropdownButtonFormField<String>(
+                  decoration: const InputDecoration(labelText: 'Security Subtype'),
+                  value: _selectedSecuritySubtype,
+                  items: _getSubtypeItems(),
+                  onChanged: (value) {
+                  setState(() {
+                    _selectedSecuritySubtype = value;
+                  });
+                  },
+                  onSaved: (value) {
+                  _formData['security_subtype'] = value;
+                  },
+                ),
+                TextFormField(
+                  controller: _issueDateController,
+                  decoration: const InputDecoration(labelText: 'Issue Date'),
+                  onSaved: (value) {
+                  _formData['issue_date'] = value;
+                  },
+                ),
+                TextFormField(
+                  controller: _maturityDateController,
+                  decoration: const InputDecoration(labelText: 'Maturity Date'),
+                  onSaved: (value) {
+                    _formData['maturity_date'] = value;
+                  },
+                ),
+                TextFormField(
+                  controller: _accrualStartDateController,
+                  decoration: const InputDecoration(labelText: 'Accrual Start Date'),
+                  onSaved: (value) {
+                    _formData['accrual_st_date'] = value;
+                  },
+                ),
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Basis Code'),
+                  initialValue: _selectedBasisCode,
+                  onSaved: (value) {
+                    _formData['basis_code'] = value;
+                  },
+                ),
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: updateSecurity,
@@ -93,7 +152,7 @@ class _SecNavigateToEditPageState extends State<SecNavigateToEditPage> {
                     foregroundColor: Colors.white,
                     backgroundColor: Colors.indigo, // Text color
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 50, vertical: 20),
+                      horizontal: 50, vertical: 20),
                   ),
                   child: const Text('Update'),
                 ),
