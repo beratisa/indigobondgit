@@ -22,8 +22,8 @@ class _NewDashboardPageState extends State<NewDashboardPage> {
 
   Future<void> fetchSecurities() async {
     try {
-      var url = Uri.parse(
-          'http://192.168.100.95:8080/securities'); // Flask API endpoint
+      var url =
+          Uri.parse('http://127.0.0.1:5000/securities'); // Flask API endpoint
       var response = await http.get(
         url,
         headers: {
@@ -48,8 +48,8 @@ class _NewDashboardPageState extends State<NewDashboardPage> {
       _formKey.currentState!.save();
       try {
         String url = securityId == null
-            ? 'http://192.168.100.95:8080/securities'
-            : 'http://192.168.100.95:8080/securities/$securityId';
+            ? 'http://127.0.0.1:5000/securities'
+            : 'http://127.0.0.1:5000/securities/$securityId';
 
         var response = await http.post(
           Uri.parse(url),
@@ -75,7 +75,7 @@ class _NewDashboardPageState extends State<NewDashboardPage> {
 
   Future<void> deleteSecurity(int securityId) async {
     try {
-      var url = Uri.parse('http://192.168.100.25:5000/securities/$securityId');
+      var url = Uri.parse('http://127.0.0.1:5000/securities/$securityId');
       var response = await http.delete(
         url,
         headers: {

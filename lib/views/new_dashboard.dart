@@ -43,7 +43,7 @@ class _NewDashboardPageState extends State<NewDashboardPage> {
       isLoading = true;
     });
     try {
-      final url = Uri.parse('http://192.168.100.95:8080/securities');
+      final url = Uri.parse('http://127.0.0.1:5000/securities');
       final response = await http.get(url, headers: {
         'Authorization': 'PIN 252-755-032',
       });
@@ -115,7 +115,7 @@ class _NewDashboardPageState extends State<NewDashboardPage> {
 
   Future<void> deleteSecurity(int securityId) async {
     try {
-      final url = Uri.parse('http://localhost:8080/securities/$securityId');
+      final url = Uri.parse('http://127.0.0.1:5000/securities/$securityId');
       final response = await http.delete(url, headers: {
         'Authorization': 'PIN 252-755-032',
       });
@@ -128,6 +128,7 @@ class _NewDashboardPageState extends State<NewDashboardPage> {
       }
     } catch (e) {
       showError('An error occurred: $e');
+      print(e);
     }
   }
 

@@ -40,10 +40,12 @@ class _SecNavigateToEditPageState extends State<SecNavigateToEditPage> {
       _selectedSecuritySubtype = widget.security!['security_subtype'];
       _issueDateController.text = widget.security!['issue_date'] ?? '';
       _maturityDateController.text = widget.security!['maturity_date'] ?? '';
-      _accrualStartDateController.text = widget.security!['accrual_st_date'] ??
-          ''; // Prefill accrual start date
-      _selectedCountry = widget.security!['country_id']?.toString();
-      _selectedRatingId = widget.security!['rating_id']?.toString();
+      _accrualStartDateController.text =
+          widget.security!['accrual_st_date'] ?? ''; // Prefill accrual start date
+      _selectedCountry =
+          "${widget.security!['country_id']}-${countries.indexWhere((c) => c['country_id'] == widget.security!['country_id'])}";
+      _selectedRatingId =
+          "${widget.security!['rating_id']}-${ratings.indexWhere((r) => r['rating_id'] == widget.security!['rating_id'])}";
       _selectedBasisCode = widget.security!['basis_code'];
     }
     fetchCountries(); // Fetch countries independently
@@ -53,7 +55,7 @@ class _SecNavigateToEditPageState extends State<SecNavigateToEditPage> {
   // Fetch countries independently
   Future<void> fetchCountries() async {
     try {
-      final url = Uri.parse('http://192.168.100.95:8080/countries');
+      final url = Uri.parse('http://127.0.0.1:5000/countries');
       final response = await http.get(url, headers: {
         'Authorization': 'PIN 252-755-032',
       });
@@ -80,7 +82,7 @@ class _SecNavigateToEditPageState extends State<SecNavigateToEditPage> {
   // Fetch ratings independently
   Future<void> fetchRatings() async {
     try {
-      final url = Uri.parse('http://localhost:8080/ratings');
+      final url = Uri.parse('http://127.0.0.1:5000/ratings');
       final response = await http.get(url, headers: {
         'Authorization': 'PIN 252-755-032',
       });
@@ -107,22 +109,18 @@ class _SecNavigateToEditPageState extends State<SecNavigateToEditPage> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
-      // Add debug print to check form data before sending the request
-
       try {
         String url =
-            'http://localhost:8080/securities/${widget.security!['security_id']}';
+            'http://127.0.0.1:5000/securities/${widget.security!['security_id']}';
 
         var response = await http.put(
           Uri.parse(url),
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'PIN 252-755-032', // Add your auth token here
+            'Authorization': 'PIN 252-755-032',
           },
           body: json.encode(_formData),
         );
-
-        print('Response: ${response.body}'); // Log the response from the server
 
         if (response.statusCode == 200 || response.statusCode == 201) {
           Navigator.pop(context, true); // Return to previous page after saving
@@ -157,76 +155,12 @@ class _SecNavigateToEditPageState extends State<SecNavigateToEditPage> {
                 Row(
                   children: [
                     Expanded(
-                        child: _buildTextFormField('ISIN Code', 'isin_code')),
+                        child:
+                            _buildCountryDropdown()), // Country Dropdown Updated
                     const SizedBox(width: 16),
                     Expanded(
                         child:
-                            _buildTextFormField('Security Name', 'sec_name')),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(child: _buildSecurityTypeDropdown()),
-                    const SizedBox(width: 16),
-                    Expanded(child: _buildSecuritySubtypeDropdown()),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                        child: _buildTextFormField('Basis Code', 'basis_code')),
-                    const SizedBox(width: 16),
-                    Expanded(
-                        child: _buildTextFormField(
-                            'Ticker Symbol', 'ticker_symbol')),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                        child:
-                            _buildTextFormField('Minimum Quantity', 'min_qty')),
-                    const SizedBox(width: 16),
-                    Expanded(child: _buildTextFormField('Price', 'price')),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                        child: _buildTextFormField('Coupon Rate', 'cp_rate')),
-                    const SizedBox(width: 16),
-                    Expanded(
-                        child:
-                            _buildCountryDropdown()), // Added Country Dropdown
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                        child: _buildDateFormField(
-                            'Issue Date', 'issue_date', _issueDateController)),
-                    const SizedBox(width: 16),
-                    Expanded(
-                        child: _buildDateFormField(
-                            'Accrual Start Date',
-                            'accrual_st_date',
-                            _accrualStartDateController)), // Added Accrual Start Date
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                        child: _buildDateFormField('Maturity Date',
-                            'maturity_date', _maturityDateController)),
-                    const SizedBox(width: 16),
-                    Expanded(
-                        child: _buildRatingDropdown()), // Added Rating Dropdown
+                            _buildRatingDropdown()), // Rating Dropdown Updated
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -248,97 +182,6 @@ class _SecNavigateToEditPageState extends State<SecNavigateToEditPage> {
     );
   }
 
-  Widget _buildTextFormField(String label, String field) {
-    return TextFormField(
-      initialValue: _formData[field]?.toString() ?? '',
-      decoration: InputDecoration(labelText: label),
-      onSaved: (value) => _formData[field] = value,
-      validator: (value) => value!.isEmpty ? '$label is required' : null,
-    );
-  }
-
-  Widget _buildDateFormField(
-      String label, String field, TextEditingController controller) {
-    return TextFormField(
-      controller: controller,
-      decoration: InputDecoration(labelText: label),
-      readOnly: true,
-      onTap: () => _selectDate(context, controller, field),
-      onSaved: (value) => _formData[field] = value,
-      validator: (value) => value!.isEmpty ? '$label is required' : null,
-    );
-  }
-
-  Future<void> _selectDate(BuildContext context,
-      TextEditingController controller, String field) async {
-    DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2101),
-    );
-
-    if (pickedDate != null) {
-      setState(() {
-        String formattedDate =
-            "${pickedDate.year}-${pickedDate.month}-${pickedDate.day}";
-        controller.text = formattedDate;
-        _formData[field] = formattedDate; // Save date in formData
-      });
-    }
-  }
-
-  Widget _buildSecurityTypeDropdown() {
-    return DropdownButtonFormField<String>(
-      value: _selectedSecurityType,
-      decoration: const InputDecoration(
-          labelText: 'Security Type',
-          border: OutlineInputBorder(),
-          suffixIcon: Icon(Icons.arrow_drop_down)),
-      items: ['GOVT', 'CORP', 'STOCK', 'ETF'].map((type) {
-        return DropdownMenuItem<String>(
-          value: type,
-          child: Text(type),
-        );
-      }).toList(),
-      onChanged: (value) {
-        setState(() {
-          _selectedSecurityType = value;
-          _selectedSecuritySubtype = null; // Reset subtype when type changes
-          _formData['security_type'] = value;
-        });
-      },
-      validator: (value) => value == null ? 'Security Type is required' : null,
-    );
-  }
-
-  Widget _buildSecuritySubtypeDropdown() {
-    return DropdownButtonFormField<String>(
-      value: _selectedSecuritySubtype,
-      decoration: const InputDecoration(
-          labelText: 'Security Subtype',
-          border: OutlineInputBorder(),
-          suffixIcon: Icon(Icons.arrow_drop_down)),
-      items: (_selectedSecurityType != null
-              ? securitySubtypes[_selectedSecurityType] ?? []
-              : [])
-          .map((subtype) {
-        return DropdownMenuItem<String>(
-          value: subtype,
-          child: Text(subtype),
-        );
-      }).toList(),
-      onChanged: (value) {
-        setState(() {
-          _selectedSecuritySubtype = value;
-          _formData['security_subtype'] = value;
-        });
-      },
-      validator: (value) =>
-          value == null ? 'Security Subtype is required' : null,
-    );
-  }
-
   // Independent widget for Rating Dropdown
   Widget _buildRatingDropdown() {
     if (isRatingLoading) {
@@ -347,21 +190,24 @@ class _SecNavigateToEditPageState extends State<SecNavigateToEditPage> {
     return DropdownButtonFormField<String>(
       value: _selectedRatingId,
       decoration: const InputDecoration(
-          labelText: 'Rating',
-          border: OutlineInputBorder(),
-          suffixIcon: Icon(Icons.arrow_drop_down)),
-      items: ratings.map((rating) {
-        String displayText =
-            "${rating['rating_id']} - ${rating['rating_agency']} (${rating['long_term_rating']} / ${rating['short_term_rating']})";
-        return DropdownMenuItem<String>(
-          value: rating['rating_id'].toString(),
-          child: Text(displayText),
-        );
+        labelText: 'Rating',
+        border: OutlineInputBorder(),
+        suffixIcon: Icon(Icons.arrow_drop_down)),
+      items: ratings.asMap().entries.map((entry) {
+      int index = entry.key;
+      Map<String, dynamic> rating = entry.value;
+      int randomNumber = (1 + (5000 * 1000000 - 1) * (index + 1) % 5000).toInt(); // Generate a random number between 1 and 5000 Mio
+      String displayText =
+        "${rating['rating_id']} - ${rating['rating_agency']} (${rating['long_term_rating']} / ${rating['short_term_rating']}) - $randomNumber";
+      return DropdownMenuItem<String>(
+        value: "${rating['rating_id']}-${index}", // Append index to ensure uniqueness
+        child: Text(displayText),
+      );
       }).toList(),
       onChanged: (value) {
         setState(() {
           _selectedRatingId = value;
-          _formData['rating_id'] = value;
+          _formData['rating_id'] = value?.split('-')[0]; // Extract actual rating ID
         });
       },
       validator: (value) => value == null ? 'Rating is required' : null,
@@ -379,31 +225,21 @@ class _SecNavigateToEditPageState extends State<SecNavigateToEditPage> {
           labelText: 'Country',
           border: OutlineInputBorder(),
           suffixIcon: Icon(Icons.arrow_drop_down)),
-      items: countries.map((country) {
+      items: countries.asMap().entries.map((entry) {
+        int index = entry.key;
+        Map<String, dynamic> country = entry.value;
         return DropdownMenuItem<String>(
-          value: country['country_id'].toString(),
+          value: "${country['country_id']}-${index}", // Append index to ensure uniqueness
           child: Text(country['country_name']),
         );
       }).toList(),
       onChanged: (value) {
         setState(() {
           _selectedCountry = value;
-          _formData['country_id'] = value;
+          _formData['country_id'] = value?.split('-')[0]; // Extract actual country ID
         });
       },
       validator: (value) => value == null ? 'Country is required' : null,
     );
   }
-
-  final Map<String, List<String>> securitySubtypes = {
-    'GOVT': ['TBill', 'Tbond', 'ZTBond', 'Funds', 'Other'],
-    'CORP': ['ABS', 'MBS', 'CBOND', 'DBOND', 'OTHER'],
-    'STOCK': [
-      'Ordinary Shares',
-      'Preferred Shares',
-      'Redeemable shares',
-      'Non-voting Shares'
-    ],
-    'ETF': ['ETFUCITS', 'ETFLEV'],
-  };
 }
